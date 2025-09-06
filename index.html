@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="/src/avay.png">
+  <title>Anson NET Photograph</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0a0a0a;
+      color: #f0f0f0;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: rgba(10,10,10,0.9);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+    }
+    header nav a {
+      margin-left: 1rem;
+      color: #bbb;
+      text-decoration: none;
+    }
+    header nav a:hover {
+      color: #fff;
+    }
+    h1 {
+      margin: 1.5rem 2rem 0.5rem;
+      font-size: 2rem;
+    }
+    p.subtitle {
+      margin: 0 2rem 1rem;
+      color: #999;
+    }
+    .controls {
+      margin: 0 2rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .controls button {
+      padding: 0.4rem 0.8rem;
+      border: 1px solid #666;
+      background: none;
+      color: #eee;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .controls button.active,
+    .controls button:hover {
+      background: #fff;
+      color: #000;
+    }
+    .controls input {
+      margin-left: auto;
+      padding: 0.4rem 0.6rem;
+      border-radius: 0.5rem;
+      border: 1px solid #555;
+      background: #111;
+      color: #eee;
+    }
+    .gallery {
+      column-count: 1;
+      column-gap: 1rem;
+      padding: 0 2rem;
+    }
+    @media (min-width: 700px) {
+      .gallery { column-count: 2; }
+    }
+    @media (min-width: 1100px) {
+      .gallery { column-count: 3; }
+    }
+    .gallery-item {
+      margin-bottom: 1rem;
+      position: relative;
+      overflow: hidden;
+      border-radius: 1rem;
+      background: #111;
+      border: 1px solid #222;
+    }
+    .gallery-item img {
+      width: 100%;
+      display: block;
+      transition: transform 0.3s;
+    }
+    .gallery-item:hover img {
+      transform: scale(1.02);
+    }
+    .caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0.5rem;
+      background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+      color: #ddd;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .gallery-item:hover .caption {
+      opacity: 1;
+    }
+    /* Lightbox */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      display: none;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 90%;
+      max-height: 80%;
+      border-radius: 0.5rem;
+    }
+    .lightbox .info {
+      margin-top: 1rem;
+      text-align: center;
+      color: #ccc;
+    }
+    .lightbox button {
+      position: absolute;
+      top: 1rem;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      font-size: 1.5rem;
+      padding: 0.5rem 0.8rem;
+      cursor: pointer;
+      border-radius: 0.5rem;
+    }
+    .lightbox .close { right: 1rem; }
+    .lightbox .prev { left: 1rem; top: 50%; transform: translateY(-50%); }
+    .lightbox .next { right: 1rem; top: 50%; transform: translateY(-50%); }
+  </style>
+</head>
+<body>
+  <header>
+    <div>Anson Gallery</div>
+    <nav>
+      <a href="#">Home</a>
+      <a href="https://ansonq.com/">Navi page</a>
+      <a href="mailto:i@ansonq.net">Mail</a>
+    </nav>
+  </header>
+
+  <h1>Curious Mind, Digital Hand</h1>
+  <p class="subtitle">A smaill space stored Anson photography</p>
+
+  <div class="controls">
+    <div id="categories"></div>
+    <input id="search" type="text" placeholder="Search title / location">
+  </div>
+
+  <div class="gallery" id="gallery"></div>
+
+  <div class="lightbox" id="lightbox">
+    <button class="close" onclick="closeLightbox()">✕</button>
+    <button class="prev" onclick="prevImage()">‹</button>
+    <div class="content">
+      <img id="lightbox-img" src="" alt="">
+      <div class="info" id="lightbox-info"></div>
+    </div>
+    <button class="next" onclick="nextImage()">›</button>
+  </div>
+
+<script>
+const categories = [
+  { id: "all", name: "All" },
+  { id: "sun", name: "Sunset/Sunrise" },
+  { id: "cloud", name: "Kinds of Clouds" },
+  { id: "rainbow", name: "Rainbow" }
+];
+
+const images = [
+  { src: "/images/cloud1.png", title: "Rain in the way-1", location: "Shandong China", categories:["cloud"] },
+  { src: "/images/cloud2.png", title: "Rain in the way-2", location: "Shandong China", categories:["cloud"] },
+  { src: "/images/cloud3.png", title: "Rain in the way-3", location: "Shandong China", categories:["cloud"] },
+  { src: "/images/cloud4.png", title: "Rain in the way-4", location: "Shandong China", categories:["cloud"] },
+  { src: "/images/hsy1.jpeg", title: "Burnning Sky-1", location: "Shandong China", categories:["cloud"] },
+  { src: "/images/hsy2.jpeg", title: "Burnning Sky-2", location: "Shandong China", categories:["cloud"] },
+  { src: "/images/hsy3.jpeg", title: "Burnning Sky-3", location: "Shandong China", categories:["cloud"] },
+  { src: "/images/hsy4.jpeg", title: "Burnning Sky-4", location: "Shandong China", categories:["cloud"] },
+  { src: "/images/rb1.jpg", title: "RB upon building-1", location: "Shandong China", categories:["rainbow"]},
+  { src: "/images/rb2.png", title: "RB upon building-2", location: "Shandong China", categories:["rainbow"]},
+  { src: "/images/sun1.png", title: "Color sun cloud-1", location: "Shandong China", categories:["sun"] },
+  { src: "/images/sun2.png", title: "Color sun cloud-2", location: "Shandong China", categories:["sun"] },
+  { src: "/images/sun3.png", title: "Color sun cloud-3", location: "Shandong China", categories:["sun"] }
+
+];
+
+let activeCategory = "all";
+let query = "";
+let currentIndex = 0;
+
+const galleryEl = document.getElementById("gallery");
+const categoriesEl = document.getElementById("categories");
+const searchEl = document.getElementById("search");
+
+function renderCategories(){
+  categoriesEl.innerHTML = categories.map(c => `<button data-id="${c.id}">${c.name}</button>`).join("");
+  categoriesEl.querySelectorAll("button").forEach(btn => {
+    btn.onclick = () => {
+      activeCategory = btn.dataset.id;
+      renderGallery();
+      categoriesEl.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+    }
+  });
+  categoriesEl.querySelector("button").classList.add("active");
+}
+
+function renderGallery(){
+  const filtered = images.filter(img =>
+    (activeCategory==="all" || img.categories.includes(activeCategory)) &&
+    (query==="" || img.title.toLowerCase().includes(query) || img.location.toLowerCase().includes(query))
+  );
+  galleryEl.innerHTML = filtered.map((img,i)=>`
+    <div class="gallery-item" onclick="openLightbox(${i})">
+      <img src="${img.src}" alt="${img.title}">
+      <div class="caption">${img.title} • ${img.location}</div>
+    </div>
+  `).join("");
+}
+
+function openLightbox(i){
+  currentIndex = i;
+  document.getElementById("lightbox").classList.add("open");
+  updateLightbox();
+}
+function closeLightbox(){
+  document.getElementById("lightbox").classList.remove("open");
+}
+function updateLightbox(){
+  const img = images[currentIndex];
+  document.getElementById("lightbox-img").src = img.src;
+  document.getElementById("lightbox-info").textContent = `${img.title} • ${img.location} (${currentIndex+1}/${images.length})`;
+}
+function prevImage(){
+  currentIndex = (currentIndex-1+images.length)%images.length;
+  updateLightbox();
+}
+function nextImage(){
+  currentIndex = (currentIndex+1)%images.length;
+  updateLightbox();
+}
+
+document.addEventListener("keydown", e => {
+  if(!document.getElementById("lightbox").classList.contains("open")) return;
+  if(e.key==="Escape") closeLightbox();
+  if(e.key==="ArrowLeft") prevImage();
+  if(e.key==="ArrowRight") nextImage();
+});
+
+searchEl.addEventListener("input", e=>{
+  query = e.target.value.toLowerCase();
+  renderGallery();
+});
+
+renderCategories();
+renderGallery();
+</script>
+</body>
+</html>
